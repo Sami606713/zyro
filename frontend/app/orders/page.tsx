@@ -1,0 +1,10 @@
+import { PageName } from "@/components/page-name";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "My orders | Zyro",
+};
+
+export default function Page() {
+  return <PageName title="My orders" />;
+}
