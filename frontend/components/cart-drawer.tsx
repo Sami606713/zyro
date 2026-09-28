@@ -1,7 +1,7 @@
 "use client";
 
 import { readHeld, writeHeld, type HeldPiece } from "@/lib/cart-store";
-import { formatPrice } from "@/lib/catalog";
+import { formatPrice } from "@/lib/format";
 import { X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";

@@ -1,7 +1,7 @@
 "use client";
 
 import { readHeld, writeHeld, type HeldPiece } from "@/lib/cart-store";
-import { formatPrice } from "@/lib/catalog";
+import { formatPrice } from "@/lib/format";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";

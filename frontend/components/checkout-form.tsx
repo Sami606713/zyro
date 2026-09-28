@@ -1,8 +1,8 @@
 "use client";
 
-import { readHeld, type HeldPiece } from "@/lib/cart-store";
-import { formatPrice } from "@/lib/catalog";
-import { saveOrder } from "@/lib/order-store";
+import { readHeld, writeHeld, type HeldPiece } from "@/lib/cart-store";
+import { formatPrice } from "@/lib/format";
+import { fetchProducts } from "@/lib/storefront-api";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -47,6 +47,8 @@ export function CheckoutForm() {
   const router = useRouter();
   const [items, setItems] = useState<HeldPiece[]>([]);
   const [ready, setReady] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     setItems(readHeld());
@@ -71,24 +73,80 @@ export function CheckoutForm() {
 
   const total = items.reduce((sum, item) => sum + item.price * item.qty, 0);
 
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setSubmitting(true);
+
+    try {
+      const token = localStorage.getItem("zyro-token");
+      if (!token) {
+        router.push("/login");
+        return;
+      }
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
+      const products = await fetchProducts({ limit: 100 });
+      const variantMap = new Map<number, number>();
+      for (const product of products) {
+        for (const variant of product.variants) {
+          variantMap.set(variant.id, product.id);
+        }
+      }
+
+      const orderItems = items.map((item) => {
+        const product = products.find((p) => p.slug === item.slug);
+        const variant = product?.variants.find((v) => v.size === item.size);
+        return {
+          variant_id: variant?.id,
+          qty: item.qty,
+        };
+      }).filter((item) => item.variant_id);
+
+      if (orderItems.length === 0) {
+        setError("Could not match cart items to products. Please try again.");
+        setSubmitting(false);
+        return;
+      }
+
+      const data = new FormData(event.currentTarget);
+      const orderData = {
+        name: String(data.get("name") ?? ""),
+        phone: String(data.get("phone") ?? ""),
+        city: String(data.get("city") ?? ""),
+        address: String(data.get("address") ?? ""),
+        note: String(data.get("note") ?? ""),
+        items: orderItems,
+      };
+
+      const res = await fetch(`${apiUrl}/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: "Failed to create order" }));
+        throw new Error(err.detail || "Failed to create order");
+      }
+
+      writeHeld([]);
+      router.push("/order-confirmation");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create order");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <form
       className="lg:grid lg:min-h-[calc(100dvh-6rem)] lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]"
-      onSubmit={(event) => {
-        event.preventDefault();
-        const data = new FormData(event.currentTarget);
-        saveOrder({
-          id: `ZY${Date.now().toString().slice(-6)}`,
-          name: String(data.get("name") ?? ""),
-          phone: String(data.get("phone") ?? ""),
-          city: String(data.get("city") ?? ""),
-          address: String(data.get("address") ?? ""),
-          note: String(data.get("note") ?? ""),
-          items,
-          total,
-        });
-        router.push("/order-confirmation");
-      }}
+      onSubmit={handleSubmit}
     >
       <section className="px-4 py-10 md:px-12 lg:py-16">
         <p className="text-sm text-accent">Delivery</p>
@@ -103,6 +161,11 @@ export function CheckoutForm() {
             <Field label="Note" name="note" placeholder="Optional" />
           </div>
         </div>
+        {error && (
+          <p className="mt-4 rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            {error}
+          </p>
+        )}
       </section>
       <aside className="flex flex-col bg-surface px-4 py-10 md:px-10 lg:sticky lg:top-24 lg:h-[calc(100dvh-6rem)] lg:py-12">
         <h2 className="font-display text-3xl tracking-[-0.03em]">Your order</h2>
@@ -127,8 +190,12 @@ export function CheckoutForm() {
             <span className="text-muted">Total</span>
             <span className="text-2xl">{formatPrice(total)}</span>
           </div>
-          <button type="submit" className="btn btn-primary mt-5 w-full">
-            Place order
+          <button
+            type="submit"
+            disabled={submitting}
+            className="btn btn-primary mt-5 w-full disabled:opacity-50"
+          >
+            {submitting ? "Placing order..." : "Place order"}
           </button>
         </div>
       </aside>

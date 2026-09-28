@@ -1,6 +1,6 @@
 import { StatusPill } from "@/components/admin/status-pill";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatPrice } from "@/lib/catalog";
+import { formatPrice } from "@/lib/format";
 
 type DeskOrder = {
   id: string;

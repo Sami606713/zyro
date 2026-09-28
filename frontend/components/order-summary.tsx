@@ -1,6 +1,6 @@
 "use client";
 
-import { formatPrice } from "@/lib/catalog";
+import { formatPrice } from "@/lib/format";
 import { readOrder, type PlacedOrder } from "@/lib/order-store";
 import Image from "next/image";
 import Link from "next/link";
