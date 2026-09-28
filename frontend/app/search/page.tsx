@@ -1,19 +1,35 @@
+"use client";
+
 import { ProductCard } from "@/components/product-card";
-import { products } from "@/lib/catalog";
-import type { Metadata } from "next";
+import { fetchProducts } from "@/lib/storefront-api";
+import { use, useEffect, useState } from "react";
 
-export const metadata: Metadata = { title: "Search | Zyro" };
+type Product = {
+  id: number;
+  name: string;
+  slug: string;
+  base_price: number;
+  description: string | null;
+  images: { id: number; image_url: string; alt_text: string | null; is_primary: boolean }[];
+  category: { id: number; name: string; slug: string };
+};
 
-export default async function SearchPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string }>;
-}) {
-  const { q } = await searchParams;
+export default function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const { q } = use(searchParams);
   const query = (q ?? "").trim().toLowerCase();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProducts({ limit: 100 })
+      .then(setProducts)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
   const found = query
     ? products.filter((product) =>
-        `${product.name} ${product.fabric} ${product.category}`.toLowerCase().includes(query),
+        `${product.name} ${product.description || ""} ${product.category.name}`.toLowerCase().includes(query)
       )
     : products;
 
@@ -22,7 +38,7 @@ export default async function SearchPage({
       <div className="mx-auto max-w-[1400px]">
         <h1 className="font-display text-4xl tracking-[-0.04em] md:text-6xl">Search</h1>
         <p className="mt-3 text-muted">
-          {query ? `${found.length} matches for “${q}”.` : "Every piece currently on the floor."}
+          {loading ? "Loading..." : query ? `${found.length} matches for "${q}".` : "Every piece currently on the floor."}
         </p>
         <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-4">
           {found.map((product) => (

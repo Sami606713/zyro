@@ -1,19 +1,53 @@
 "use client";
 
 import { ProductCard } from "@/components/product-card";
-import { products, type CategorySlug } from "@/lib/catalog";
+import { fetchCategories, fetchProducts } from "@/lib/storefront-api";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const tabs: { slug: CategorySlug; label: string }[] = [
-  { slug: "apparel", label: "Apparel" },
-  { slug: "bottomwear", label: "Bottomwear" },
-  { slug: "accessories", label: "Accessories" },
-];
+type Product = {
+  id: number;
+  name: string;
+  slug: string;
+  base_price: number;
+  category_id: number;
+  images: { id: number; image_url: string; alt_text: string | null; is_primary: boolean }[];
+};
+
+type Category = {
+  id: number;
+  name: string;
+  slug: string;
+};
 
 export function NewArrivals() {
-  const [active, setActive] = useState<CategorySlug>("apparel");
-  const visible = products.filter((product) => product.categorySlug === active);
+  const [active, setActive] = useState<string>("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([fetchCategories(), fetchProducts({ limit: 100 })])
+      .then(([cats, prods]) => {
+        setCategories(cats);
+        setProducts(prods);
+        if (cats.length > 0) setActive(cats[0].slug);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const visible = active ? products.filter((p) => p.category_id === categories.find((c) => c.slug === active)?.id) : [];
+
+  if (loading) {
+    return (
+      <section className="px-4 py-16 md:px-8 md:py-24">
+        <div className="mx-auto max-w-[1400px]">
+          <p className="text-muted">Loading...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="px-4 py-16 md:px-8 md:py-24">
@@ -22,20 +56,20 @@ export function NewArrivals() {
           New arrivals
         </h2>
         <div className="mt-8 flex gap-6 border-b border-line" role="tablist" aria-label="New arrivals">
-          {tabs.map((tab) => {
-            const selected = tab.slug === active;
+          {categories.map((cat) => {
+            const selected = cat.slug === active;
             return (
               <button
-                key={tab.slug}
+                key={cat.slug}
                 type="button"
                 role="tab"
                 aria-selected={selected}
-                onClick={() => setActive(tab.slug)}
+                onClick={() => setActive(cat.slug)}
                 className={`-mb-px border-b-2 pb-3 text-sm tracking-wide ${
                   selected ? "border-accent text-fg" : "border-transparent text-muted"
                 }`}
               >
-                {tab.label}
+                {cat.name}
               </button>
             );
           })}

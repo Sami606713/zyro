@@ -1,18 +1,50 @@
 import { TiltFrame } from "@/components/tilt-frame";
-import { formatPrice, type Product } from "@/lib/catalog";
+import { formatPrice } from "@/lib/format";
 import Image from "next/image";
 import Link from "next/link";
 
-export function ProductCard({ product }: { product: Product }) {
+type ApiProduct = {
+  id: number;
+  name: string;
+  slug: string;
+  base_price: number;
+  images: { id: number; image_url: string; alt_text: string | null; is_primary: boolean }[];
+  category?: { id: number; name: string; slug: string };
+};
+
+type Product = {
+  slug: string;
+  name: string;
+  image: string;
+  alt: string;
+  category: string;
+  price: number;
+};
+
+function mapProduct(product: ApiProduct): Product {
+  const primaryImage = product.images.find((img) => img.is_primary) || product.images[0];
+  return {
+    slug: product.slug,
+    name: product.name,
+    image: primaryImage?.image_url || "",
+    alt: primaryImage?.alt_text || product.name,
+    category: product.category?.name || "",
+    price: product.base_price,
+  };
+}
+
+export function ProductCard({ product }: { product: ApiProduct }) {
+  const mapped = mapProduct(product);
+
   return (
     <article>
-      <Link href={`/products/${product.slug}`} className="group block">
+      <Link href={`/products/${mapped.slug}`} className="group block">
         <TiltFrame>
           <div className="relative aspect-[3/4] overflow-hidden rounded-[1.4rem] bg-surface p-1.5 ring-1 ring-white/10">
             <div className="relative h-full overflow-hidden rounded-[1.1rem]">
               <Image
-                src={product.image}
-                alt={product.alt}
+                src={mapped.image}
+                alt={mapped.alt}
                 fill
                 sizes="(min-width: 1024px) 22vw, (min-width: 640px) 45vw, 80vw"
                 className="object-cover transition duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.04]"
@@ -20,14 +52,10 @@ export function ProductCard({ product }: { product: Product }) {
             </div>
           </div>
         </TiltFrame>
-        <p className="mt-3 text-xs tracking-[0.08em] text-muted uppercase">{product.fabric}</p>
-        <h3 className="font-display mt-1 text-lg tracking-[-0.02em]">{product.name}</h3>
-        <p className="text-sm text-muted">{product.category}</p>
+        <p className="mt-3 text-xs tracking-[0.08em] text-muted uppercase">{mapped.category}</p>
+        <h3 className="font-display mt-1 text-lg tracking-[-0.02em]">{mapped.name}</h3>
         <p className="mt-1 text-sm">
-          {product.compareAt ? (
-            <span className="mr-2 text-muted line-through">{formatPrice(product.compareAt)}</span>
-          ) : null}
-          {formatPrice(product.price)}
+          {formatPrice(mapped.price)}
         </p>
       </Link>
     </article>

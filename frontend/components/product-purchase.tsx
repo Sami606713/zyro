@@ -1,19 +1,31 @@
 "use client";
 
 import { holdPiece } from "@/lib/cart-store";
-import { type Product } from "@/lib/catalog";
 import { useState } from "react";
 
-const sizesFor: Record<Product["categorySlug"], string[]> = {
+type ApiProduct = {
+  id: number;
+  name: string;
+  slug: string;
+  base_price: number;
+  images: { id: number; image_url: string; alt_text: string | null; is_primary: boolean }[];
+  variants: { id: number; size: string; color: string; sku: string; stock_quantity: number; price_override: number | null }[];
+  category?: { id: number; name: string; slug: string };
+};
+
+const sizesFor: Record<string, string[]> = {
   apparel: ["S", "M", "L", "XL"],
   outerwear: ["S", "M", "L", "XL"],
   bottomwear: ["30", "32", "34", "36"],
   accessories: ["32", "34", "36", "38"],
 };
 
-export function ProductPurchase({ product }: { product: Product }) {
-  const sizes = sizesFor[product.categorySlug];
+export function ProductPurchase({ product }: { product: ApiProduct }) {
+  const categorySlug = product.category?.slug || "apparel";
+  const sizes = sizesFor[categorySlug] || sizesFor["apparel"];
   const [size, setSize] = useState(sizes[1] ?? sizes[0]);
+
+  const primaryImage = product.images.find((img) => img.is_primary) || product.images[0];
 
   return (
     <div className="mt-8">
@@ -44,8 +56,8 @@ export function ProductPurchase({ product }: { product: Product }) {
           holdPiece({
             slug: product.slug,
             name: product.name,
-            price: product.price,
-            image: product.image,
+            price: product.base_price,
+            image: primaryImage?.image_url || "",
             size,
           });
         }}
