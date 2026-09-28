@@ -4,7 +4,7 @@ import { useAdminAuth } from "@/lib/admin-auth";
 import { api } from "@/lib/api";
 import { formatPrice } from "@/lib/format";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 
 type UserDetail = {
   id: number;
@@ -20,6 +20,7 @@ type UserDetail = {
 };
 
 export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const { token } = useAdminAuth();
   const [user, setUser] = useState<UserDetail | null>(null);
@@ -34,7 +35,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
   useEffect(() => {
     if (!token) return;
-    api.get<UserDetail>(`/admin/users/${params.id}`, token)
+    api.get<UserDetail>(`/admin/users/${id}`, token)
       .then((u) => {
         setUser(u);
         setFirstName(u.first_name);
@@ -43,14 +44,14 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [token, params.id]);
+  }, [token, id]);
 
   const handleSave = async () => {
     setSaving(true);
     setError("");
 
     try {
-      await api.put(`/admin/users/${params.id}`, {
+      await api.put(`/admin/users/${id}`, {
         first_name: firstName,
         last_name: lastName,
         phone: phone || null,
@@ -67,7 +68,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   const toggleActive = async () => {
     if (!user) return;
     try {
-      await api.put(`/admin/users/${params.id}`, { is_active: !user.is_active }, token);
+      await api.put(`/admin/users/${id}`, { is_active: !user.is_active }, token);
       setUser({ ...user, is_active: !user.is_active });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update status");

@@ -3,7 +3,7 @@
 import { useAdminAuth } from "@/lib/admin-auth";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 
 type Category = {
   id: number;
@@ -14,6 +14,7 @@ type Category = {
 };
 
 export default function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const { token } = useAdminAuth();
   const [category, setCategory] = useState<Category | null>(null);
@@ -34,7 +35,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
     ])
       .then(([cats]) => {
         setCategories(cats);
-        const cat = cats.find((c) => c.id === parseInt(params.id));
+        const cat = cats.find((c) => c.id === parseInt(id));
         if (cat) {
           setCategory(cat);
           setName(cat.name);
@@ -45,7 +46,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [token, params.id]);
+  }, [token, id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +54,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
     setSaving(true);
 
     try {
-      await api.put(`/admin/categories/${params.id}`, {
+      await api.put(`/admin/categories/${id}`, {
         name,
         slug,
         description: description || null,

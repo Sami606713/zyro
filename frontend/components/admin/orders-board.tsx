@@ -35,7 +35,7 @@ function mapOrder(order: ApiOrder): DeskOrder {
 
   return {
     id: `#${order.id}`,
-    name: `${order.user?.first_name ?? ""} ${order.user?.last_name ?? ""}`.trim() || order.user?.email ?? "Unknown",
+    name: `${order.user?.first_name ?? ""} ${order.user?.last_name ?? ""}`.trim() || (order.user?.email ?? "Unknown"),
     city: "",
     total: order.total_amount,
     status: order.status,

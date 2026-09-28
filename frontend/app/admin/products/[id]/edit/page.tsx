@@ -3,7 +3,7 @@
 import { useAdminAuth } from "@/lib/admin-auth";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 
 type Category = {
   id: number;
@@ -41,6 +41,7 @@ type Product = {
 };
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const { token } = useAdminAuth();
   const [product, setProduct] = useState<Product | null>(null);
@@ -61,7 +62,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   useEffect(() => {
     if (!token) return;
     Promise.all([
-      api.get<Product>(`/admin/products/${params.id}`, token),
+      api.get<Product>(`/admin/products/${id}`, token),
       api.get<Category[]>("/admin/categories", token),
     ])
       .then(([prod, cats]) => {
@@ -76,7 +77,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [token, params.id]);
+  }, [token, id]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -96,7 +97,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     setSaving(true);
 
     try {
-      await api.put(`/admin/products/${params.id}`, {
+      await api.put(`/admin/products/${id}`, {
         name,
         slug,
         description,
@@ -108,7 +109,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       for (let i = 0; i < newImages.length; i++) {
         const formData = new FormData();
         formData.append("file", newImages[i]);
-        await api.upload(`/admin/products/${params.id}/images`, formData, token);
+        await api.upload(`/admin/products/${id}/images`, formData, token);
       }
 
       router.push("/admin/products");
@@ -121,7 +122,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
   const toggleStatus = async () => {
     try {
-      await api.put(`/admin/products/${params.id}/status`, { is_active: !isActive }, token);
+      await api.put(`/admin/products/${id}/status`, { is_active: !isActive }, token);
       setIsActive(!isActive);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update status");

@@ -2,9 +2,9 @@
 
 import { useAdminAuth } from "@/lib/admin-auth";
 import { api } from "@/lib/api";
-import { formatPrice } from "@/lib/catalog";
+import { formatPrice } from "@/lib/format";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 
 type OrderItem = {
   id: number;
@@ -30,6 +30,7 @@ type Order = {
 const statuses = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const { token } = useAdminAuth();
   const [order, setOrder] = useState<Order | null>(null);
@@ -39,11 +40,11 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
   useEffect(() => {
     if (!token) return;
-    api.get<Order>(`/admin/orders/${params.id}`, token)
+    api.get<Order>(`/admin/orders/${id}`, token)
       .then(setOrder)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [token, params.id]);
+  }, [token, id]);
 
   const updateStatus = async (newStatus: string) => {
     if (!order) return;
@@ -51,7 +52,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     setError("");
 
     try {
-      await api.put(`/admin/orders/${params.id}/status`, { status: newStatus }, token);
+      await api.put(`/admin/orders/${id}/status`, { status: newStatus }, token);
       setOrder({ ...order, status: newStatus });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update status");

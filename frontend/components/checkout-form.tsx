@@ -130,7 +130,7 @@ export function CheckoutForm() {
       });
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: "Failed to create order" }));
+        const err: { detail?: string } = await res.json().catch(() => ({ detail: "Failed to create order" }));
         throw new Error(err.detail || "Failed to create order");
       }
 
