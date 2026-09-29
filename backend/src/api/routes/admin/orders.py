@@ -16,11 +16,11 @@ def get_service(db: DBDep) -> AdminService:
 
 @router.get("/orders", response_model=List[OrderResponse])
 async def list_orders(
+    current_admin: CurrentAdmin,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     status: str | None = None,
     service: AdminService = Depends(get_service),
-    current_admin: CurrentAdmin = None,
 ):
     return await service.list_orders(skip, limit, status)
 
@@ -28,8 +28,8 @@ async def list_orders(
 @router.get("/orders/{order_id}", response_model=OrderResponse)
 async def get_order(
     order_id: int,
+    current_admin: CurrentAdmin,
     service: AdminService = Depends(get_service),
-    current_admin: CurrentAdmin = None,
 ):
     order = await service.get_order(order_id)
     if not order:
@@ -41,8 +41,8 @@ async def get_order(
 async def update_order_status(
     order_id: int,
     data: OrderStatusUpdate,
+    current_admin: CurrentAdmin,
     service: AdminService = Depends(get_service),
-    current_admin: CurrentAdmin = None,
 ):
     order = await service.update_order_status(order_id, data.status)
     if not order:

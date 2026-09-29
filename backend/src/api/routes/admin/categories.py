@@ -16,8 +16,8 @@ def get_service(db: DBDep) -> AdminService:
 
 @router.get("/categories", response_model=List[CategoryResponse])
 async def list_categories(
+    current_admin: CurrentAdmin,
     service: AdminService = Depends(get_service),
-    current_admin: CurrentAdmin = None,
 ):
     return await service.list_categories()
 
@@ -25,8 +25,8 @@ async def list_categories(
 @router.post("/categories", response_model=CategoryResponse, status_code=status.HTTP_201_CREATED)
 async def create_category(
     data: CategoryCreate,
+    current_admin: CurrentAdmin,
     service: AdminService = Depends(get_service),
-    current_admin: CurrentAdmin = None,
 ):
     return await service.create_category(data.model_dump())
 
@@ -35,8 +35,8 @@ async def create_category(
 async def update_category(
     category_id: int,
     data: CategoryUpdate,
+    current_admin: CurrentAdmin,
     service: AdminService = Depends(get_service),
-    current_admin: CurrentAdmin = None,
 ):
     category = await service.update_category(category_id, data.model_dump(exclude_unset=True))
     if not category:
@@ -47,8 +47,8 @@ async def update_category(
 @router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_category(
     category_id: int,
+    current_admin: CurrentAdmin,
     service: AdminService = Depends(get_service),
-    current_admin: CurrentAdmin = None,
 ):
     deleted = await service.delete_category(category_id)
     if not deleted:

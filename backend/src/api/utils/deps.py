@@ -1,4 +1,5 @@
 import os
+import secrets
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Annotated
@@ -16,7 +17,7 @@ from src.api.exceptions import (
     CredentialsException,
     InactiveUserException,
 )
-from src.api.models import Role, User, UserRole
+from src.api.models import PasswordResetToken, RefreshToken, Role, User, UserRole
 
 BACKEND_ROOT = Path(__file__).resolve().parents[3]
 load_dotenv(BACKEND_ROOT / ".env")
@@ -24,9 +25,11 @@ load_dotenv(BACKEND_ROOT / ".env")
 DATABASE_URL = os.getenv("POSTGRES_URI_CUSTOM")
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = 1440
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REFRESH_TOKEN_EXPIRE_DAYS = 7
+PASSWORD_RESET_TOKEN_EXPIRE_MINUTES = 15
 
-engine = create_async_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(DATABASE_URL, echo=False)
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/users/login")
@@ -59,6 +62,64 @@ async def create_access_token(user_id: int, db: AsyncSession) -> str:
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode = {"sub": str(user_id), "roles": roles, "exp": expire}
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+async def create_refresh_token(user_id: int, db: AsyncSession) -> str:
+    token = secrets.token_urlsafe(64)
+    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    refresh_token = RefreshToken(
+        user_id=user_id,
+        token=token,
+        expires_at=expire,
+    )
+    db.add(refresh_token)
+    await db.commit()
+    return token
+
+
+async def verify_refresh_token(token: str, db: AsyncSession) -> int | None:
+    result = await db.execute(
+        select(RefreshToken).where(
+            RefreshToken.token == token,
+            RefreshToken.is_revoked == False,
+        )
+    )
+    refresh_token = result.scalar_one_or_none()
+    if not refresh_token:
+        return None
+    if refresh_token.expires_at < datetime.utcnow():
+        return None
+    return refresh_token.user_id
+
+
+async def create_password_reset_token(user_id: int, db: AsyncSession) -> str:
+    token = secrets.token_urlsafe(64)
+    expire = datetime.utcnow() + timedelta(minutes=PASSWORD_RESET_TOKEN_EXPIRE_MINUTES)
+    reset_token = PasswordResetToken(
+        user_id=user_id,
+        token=token,
+        expires_at=expire,
+    )
+    db.add(reset_token)
+    await db.commit()
+    return token
+
+
+async def verify_password_reset_token(token: str, db: AsyncSession) -> int | None:
+    result = await db.execute(
+        select(PasswordResetToken).where(
+            PasswordResetToken.token == token,
+            PasswordResetToken.is_used == False,
+        )
+    )
+    reset_token = result.scalar_one_or_none()
+    if not reset_token:
+        return None
+    if reset_token.expires_at < datetime.utcnow():
+        return None
+    reset_token.is_used = True
+    await db.commit()
+    return reset_token.user_id
 
 
 async def get_current_user(

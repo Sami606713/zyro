@@ -19,7 +19,7 @@ export function SaleRow() {
 
   useEffect(() => {
     fetchProducts({ limit: 100 })
-      .then(setProducts)
+      .then((data) => setProducts(data.items))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);

@@ -30,7 +30,7 @@ export function NewArrivals() {
     Promise.all([fetchCategories(), fetchProducts({ limit: 100 })])
       .then(([cats, prods]) => {
         setCategories(cats);
-        setProducts(prods);
+        setProducts(prods.items);
         if (cats.length > 0) setActive(cats[0].slug);
       })
       .catch(console.error)

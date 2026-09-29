@@ -8,9 +8,13 @@ from .base import Base, TimestampMixin
 if TYPE_CHECKING:
     from .address import Address
     from .cart import Cart
+    from .notification import Notification
     from .order import Order
+    from .refresh_token import RefreshToken
+    from .return_request import ReturnRequest
     from .review import Review
     from .user_role import UserRole
+    from .wishlist_item import WishlistItem
 
 
 class User(TimestampMixin, Base):
@@ -38,5 +42,17 @@ class User(TimestampMixin, Base):
     )
     orders: Mapped[List["Order"]] = relationship(back_populates="user")
     reviews: Mapped[List["Review"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    wishlist_items: Mapped[List["WishlistItem"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    return_requests: Mapped[List["ReturnRequest"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    refresh_tokens: Mapped[List["RefreshToken"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    notifications: Mapped[List["Notification"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )

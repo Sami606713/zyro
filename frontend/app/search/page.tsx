@@ -22,7 +22,7 @@ export default function SearchPage({ searchParams }: { searchParams: Promise<{ q
 
   useEffect(() => {
     fetchProducts({ limit: 100 })
-      .then(setProducts)
+      .then((data) => setProducts(data.items))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);

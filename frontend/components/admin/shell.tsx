@@ -23,14 +23,16 @@ const links = [
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  const { user, logout } = useAdminAuth();
+  const { user, token, logout } = useAdminAuth();
   const [waitingCount, setWaitingCount] = useState(0);
 
   useEffect(() => {
-    api.get<{ orders_count: number }>("/admin/stats").then((stats) => {
-      setWaitingCount(stats.orders_count);
-    }).catch(() => {});
-  }, []);
+    if (token) {
+      api.get<{ orders_count: number }>("/admin/stats", token).then((stats) => {
+        setWaitingCount(stats.orders_count);
+      }).catch(() => {});
+    }
+  }, [token]);
 
   return (
     <div className="min-h-dvh bg-bg text-fg lg:grid lg:grid-cols-[260px_minmax(0,1fr)]">

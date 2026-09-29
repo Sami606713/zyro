@@ -11,10 +11,14 @@ import {
 import { Search, ShoppingBag, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cartCount } from "@/lib/cart-store";
 import { useEffect, useRef, useState } from "react";
 import { CartDrawer } from "./cart-drawer";
 import { Logo } from "./logo";
+import { NotificationBell } from "./notification-bell";
+import { ThemeToggle } from "./theme-toggle";
+import { SearchAutocomplete } from "./search-autocomplete";
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { fetchCart } from "@/lib/store/cart-slice";
 
 const groups = [
   { title: "Shop", links: shopLinks },
@@ -36,21 +40,18 @@ function MenuMark() {
 }
 
 export function Nav() {
+  const dispatch = useAppDispatch();
+  const cart = useAppSelector((state) => state.cart);
+  const auth = useAppSelector((state) => state.auth);
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
-  const [itemsInCart, setItemsInCart] = useState(0);
   const pathname = usePathname();
 
   useEffect(() => {
-    const sync = () => setItemsInCart(cartCount());
-    sync();
-    window.addEventListener("zyro-cart", sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener("zyro-cart", sync);
-      window.removeEventListener("storage", sync);
-    };
-  }, []);
+    if (auth.token) {
+      dispatch(fetchCart());
+    }
+  }, [auth.token, dispatch]);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -138,23 +139,11 @@ export function Nav() {
           <Link href="/search" aria-label="Search" className="inline-flex h-10 w-9 shrink-0 items-center justify-center sm:hidden">
             <Search size={20} />
           </Link>
-          <form
-            action="/search"
-            role="search"
-            className="hidden h-10 min-w-0 flex-1 items-center gap-2 border border-line bg-surface px-3 sm:flex sm:max-w-44 md:max-w-64"
-          >
-            <Search size={18} className="shrink-0 text-muted" aria-hidden="true" />
-            <label htmlFor="nav-search" className="sr-only">
-              Search
-            </label>
-            <input
-              id="nav-search"
-              name="q"
-              type="search"
-              placeholder="Search"
-              className="w-full min-w-0 bg-transparent text-sm text-fg outline-none placeholder:text-muted"
-            />
-          </form>
+          <div className="hidden sm:block sm:max-w-44 md:max-w-64">
+            <SearchAutocomplete />
+          </div>
+          <NotificationBell />
+          <ThemeToggle />
           <Link
             href="/account"
             aria-label="Profile"
@@ -165,13 +154,13 @@ export function Nav() {
           <button
             type="button"
             onClick={() => setCartOpen(true)}
-            aria-label={itemsInCart > 0 ? `Cart, ${itemsInCart} items` : "Cart"}
+            aria-label={cart.total_items > 0 ? `Cart, ${cart.total_items} items` : "Cart"}
             className="relative inline-flex h-10 w-9 shrink-0 items-center justify-center text-fg hover:text-accent sm:w-10"
           >
             <ShoppingBag size={22} />
-            {itemsInCart > 0 ? (
+            {cart.total_items > 0 ? (
               <span className="absolute top-0.5 right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-ink">
-                {itemsInCart > 9 ? "9+" : itemsInCart}
+                {cart.total_items > 9 ? "9+" : cart.total_items}
               </span>
             ) : null}
           </button>

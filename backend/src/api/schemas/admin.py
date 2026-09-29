@@ -52,7 +52,9 @@ class ProductCreate(BaseModel):
     slug: str
     description: str | None = None
     base_price: float = Field(gt=0)
-    category_id: int
+    category_id: int | None = None
+    meta_title: str | None = None
+    meta_description: str | None = None
 
 
 class ProductUpdate(BaseModel):
@@ -61,6 +63,8 @@ class ProductUpdate(BaseModel):
     description: str | None = None
     base_price: float | None = Field(default=None, gt=0)
     category_id: int | None = None
+    meta_title: str | None = None
+    meta_description: str | None = None
 
 
 class ProductStatusUpdate(BaseModel):
@@ -111,12 +115,16 @@ class ProductResponse(BaseModel):
     slug: str
     description: str | None
     base_price: float
-    category_id: int
+    category_id: int | None
     is_active: bool
+    meta_title: str | None = None
+    meta_description: str | None = None
     created_at: datetime
     updated_at: datetime
     images: list["ProductImageResponse"] = []
     variants: list["ProductVariantResponse"] = []
+    average_rating: float | None = None
+    review_count: int = 0
 
     model_config = {"from_attributes": True}
 
@@ -140,6 +148,18 @@ class ProductVariantResponse(BaseModel):
     sku: str
     stock_quantity: int
     price_override: float | None
+
+    model_config = {"from_attributes": True}
+
+
+class OrderItemResponse(BaseModel):
+    id: int
+    order_id: int
+    variant_id: int
+    quantity: int
+    unit_price: float
+    total_price: float
+    product_name: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -197,5 +217,69 @@ class ReviewResponse(BaseModel):
 class ProductBriefResponse(BaseModel):
     id: int
     name: str
+
+    model_config = {"from_attributes": True}
+
+
+class CouponCreate(BaseModel):
+    code: str
+    discount_percent: float = Field(gt=0, le=100)
+    valid_from: datetime
+    valid_until: datetime
+    usage_limit: int | None = None
+
+
+class CouponUpdate(BaseModel):
+    code: str | None = None
+    discount_percent: float | None = Field(default=None, gt=0, le=100)
+    valid_from: datetime | None = None
+    valid_until: datetime | None = None
+    is_active: bool | None = None
+    usage_limit: int | None = None
+
+
+class CouponResponse(BaseModel):
+    id: int
+    code: str
+    discount_percent: float
+    valid_from: datetime
+    valid_until: datetime
+    is_active: bool
+    usage_limit: int | None
+    usage_count: int
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class UserDetailResponse(BaseModel):
+    id: int
+    email: EmailStr
+    first_name: str
+    last_name: str
+    phone: str | None
+    is_active: bool
+    is_verified: bool
+    created_at: datetime
+    updated_at: datetime
+    addresses: list["AddressResponse"] = []
+    orders: list["OrderResponse"] = []
+
+    model_config = {"from_attributes": True}
+
+
+class AddressResponse(BaseModel):
+    id: int
+    address_line1: str
+    address_line2: str | None
+    city: str
+    state: str
+    postal_code: str
+    country: str
+    phone: str | None
+    is_default: bool
+    created_at: datetime
+    updated_at: datetime
 
     model_config = {"from_attributes": True}

@@ -20,7 +20,7 @@ export function ShopTheLook() {
 
   useEffect(() => {
     fetchProducts({ limit: 100 })
-      .then((products) => setPieces(products.slice(0, 3)))
+      .then((products) => setPieces(products.items.slice(0, 3)))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);

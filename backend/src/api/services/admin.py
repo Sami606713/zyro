@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from sqlalchemy import func, select
@@ -112,7 +113,7 @@ class AdminService:
         user = await self.db.get(User, user_id)
         if not user:
             return False
-        await self.db.delete(user)
+        user.is_active = False
         await self.db.commit()
         return True
 
@@ -144,7 +145,8 @@ class AdminService:
         category = await self.db.get(Category, category_id)
         if not category:
             return False
-        await self.db.delete(category)
+        category.is_active = False
+        category.deleted_at = datetime.utcnow()
         await self.db.commit()
         return True
 
@@ -207,7 +209,8 @@ class AdminService:
         product = await self.db.get(Product, product_id)
         if not product:
             return False
-        await self.db.delete(product)
+        product.is_active = False
+        product.deleted_at = datetime.utcnow()
         await self.db.commit()
         return True
 
@@ -237,7 +240,7 @@ class AdminService:
         await self.db.commit()
         return True
 
-    async def update_image(self, image_id: int, data: dict) -> ProductImage | None:
+    async def update_image(self, image_id: int, data: dict) -> Product | None:
         image = await self.db.get(ProductImage, image_id)
         if not image:
             return None
@@ -246,7 +249,7 @@ class AdminService:
                 setattr(image, key, value)
         await self.db.commit()
         await self.db.refresh(image)
-        return image
+        return await self.get_product(image.product_id)
 
     async def delete_image(self, image_id: int) -> bool:
         image = await self.db.get(ProductImage, image_id)
@@ -263,7 +266,7 @@ class AdminService:
         status: str | None = None,
     ) -> List[Order]:
         query = select(Order).options(
-            selectinload(Order.items).selectinload(OrderItem.variant),
+            selectinload(Order.items).selectinload(OrderItem.variant).selectinload(ProductVariant.product),
             selectinload(Order.user),
             selectinload(Order.shipping_address),
             selectinload(Order.billing_address),
@@ -281,7 +284,7 @@ class AdminService:
             select(Order)
             .where(Order.id == order_id)
             .options(
-                selectinload(Order.items).selectinload(OrderItem.variant),
+                selectinload(Order.items).selectinload(OrderItem.variant).selectinload(ProductVariant.product),
                 selectinload(Order.user),
                 selectinload(Order.shipping_address),
                 selectinload(Order.billing_address),

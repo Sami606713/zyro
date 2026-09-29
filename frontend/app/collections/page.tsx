@@ -30,7 +30,7 @@ export default function CollectionsPage() {
     Promise.all([fetchCategories(), fetchProducts({ limit: 100 })])
       .then(([cats, prods]) => {
         setCategories(cats);
-        setProducts(prods);
+        setProducts(prods.items);
       })
       .catch(console.error)
       .finally(() => setLoading(false));

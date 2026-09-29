@@ -17,6 +17,7 @@ class ProductImage(Base):
         ForeignKey("products.id", ondelete="CASCADE"), nullable=False
     )
     image_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    public_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     alt_text: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)

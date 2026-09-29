@@ -40,7 +40,7 @@ export default function CollectionPage({ params }: { params: Promise<{ slug: str
           return;
         }
         setCategory(cat);
-        setProducts(prods.filter((p) => p.category_id === cat.id));
+        setProducts(prods.items.filter((p) => p.category_id === cat.id));
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
