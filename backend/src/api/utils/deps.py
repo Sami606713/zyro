@@ -10,7 +10,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-
+from fastmcp.server.auth.providers.jwt import JWTVerifier
 from src.api.exceptions import (
     AdminRequiredException,
     CredentialsException,
@@ -107,5 +107,12 @@ async def get_current_admin(
         raise AdminRequiredException()
     return current_user
 
+def get_mcp_auth():
+    auth = JWTVerifier(
+        public_key=SECRET_KEY,     
+        algorithm=ALGORITHM,       
+        audience=None,             
+    )
+    return auth
 
 CurrentAdmin = Annotated[User, Depends(get_current_admin)]

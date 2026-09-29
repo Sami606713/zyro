@@ -1,0 +1,12 @@
+{
+    "$schema": "https://langgra.ph/schema.json",
+    "dependencies": [
+        "."
+    ],
+    "http": {
+        "app": "src.api.main:combined_app"
+    },
+    "graphs": {
+        "chat": "src.agent.agent:zyro_agent"
+    }
+}

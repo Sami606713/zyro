@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { SiteFrame } from "@/components/site-frame";
+import ChatWidget from "@/components/chat/chat-widget";
 import { cn } from "@/lib/utils";
 
 const outfit = localFont({
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={cn("h-full", outfit.variable, "font-sans")}>
       <body className="min-h-full overflow-x-hidden bg-bg text-fg antialiased">
         <SiteFrame>{children}</SiteFrame>
+        <ChatWidget />
       </body>
     </html>
   );
