@@ -25,9 +25,9 @@ class Product(TimestampMixin, Base):
     meta_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
     meta_description: Mapped[str | None] = mapped_column(String(500), nullable=True)
     category_id: Mapped[int | None] = mapped_column(
-        ForeignKey("categories.id", ondelete="SET NULL"), nullable=True
+        ForeignKey("categories.id", ondelete="SET NULL"), nullable=True, index=True
     )
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     category: Mapped["Category"] = relationship(back_populates="products")

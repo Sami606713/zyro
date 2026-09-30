@@ -17,10 +17,10 @@ class Order(TimestampMixin, Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), nullable=True
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True
     )
     status: Mapped[str] = mapped_column(
-        String(50), default="pending", nullable=False
+        String(50), default="pending", nullable=False, index=True
     )
     total_amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     shipping_address_id: Mapped[int] = mapped_column(
