@@ -1,6 +1,6 @@
 import os
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Annotated
 
@@ -87,7 +87,7 @@ async def verify_refresh_token(token: str, db: AsyncSession) -> int | None:
     refresh_token = result.scalar_one_or_none()
     if not refresh_token:
         return None
-    if refresh_token.expires_at < datetime.utcnow():
+    if refresh_token.expires_at < datetime.now(timezone.utc):
         return None
     return refresh_token.user_id
 
