@@ -8,5 +8,9 @@
     },
     "graphs": {
         "chat": "src.agent.agent:zyro_agent"
+    },
+    "env": {
+        "LANGGRAPH_POSTGRES_URI": "${LANGGRAPH_POSTGRES_URI}",
+        "REDIS_URI": "${REDIS_URI}"
     }
 }
