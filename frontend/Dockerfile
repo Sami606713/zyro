@@ -37,7 +37,7 @@ ENV HOSTNAME=0.0.0.0
 # Copy the standalone build output
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/frontend/public ./public
+COPY --from=builder /app/public ./public
 
 # Change ownership to the non-root user
 RUN chown -R nextjs:nodejs /app
