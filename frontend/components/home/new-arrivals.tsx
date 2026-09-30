@@ -10,7 +10,7 @@ type Product = {
   name: string;
   slug: string;
   base_price: number;
-  category_id: number;
+  category_id: number | null;
   images: { id: number; image_url: string; alt_text: string | null; is_primary: boolean }[];
 };
 

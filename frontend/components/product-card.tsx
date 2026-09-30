@@ -9,7 +9,7 @@ type ApiProduct = {
   slug: string;
   base_price: number;
   images: { id: number; image_url: string; alt_text: string | null; is_primary: boolean }[];
-  category?: { id: number; name: string; slug: string };
+  category?: { id: number; name: string; slug: string } | null;
 };
 
 type Product = {

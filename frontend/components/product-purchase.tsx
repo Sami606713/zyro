@@ -11,7 +11,7 @@ type ApiProduct = {
   base_price: number;
   images: { id: number; image_url: string; alt_text: string | null; is_primary: boolean }[];
   variants: { id: number; size: string; color: string; sku: string; stock_quantity: number; price_override: number | null }[];
-  category?: { id: number; name: string; slug: string };
+  category?: { id: number; name: string; slug: string } | null;
 };
 
 export function ProductPurchase({ product }: { product: ApiProduct }) {

@@ -29,6 +29,8 @@ function Field({
   autoComplete,
   defaultValue,
   placeholder,
+  value,
+  onChange,
 }: {
   label: string;
   name: string;
@@ -37,6 +39,8 @@ function Field({
   autoComplete?: string;
   defaultValue?: string;
   placeholder?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
     <label className="grid gap-2 text-sm">
@@ -49,6 +53,8 @@ function Field({
           autoComplete={autoComplete}
           defaultValue={defaultValue}
           placeholder={placeholder}
+          value={value}
+          onChange={onChange}
           className="h-12 w-full rounded-[0.9rem] bg-bg px-4 text-sm text-fg outline-none placeholder:text-muted focus:ring-1 focus:ring-accent"
         />
       </span>
@@ -145,7 +151,7 @@ export function CheckoutForm() {
           notes: notes || undefined,
         };
 
-        const res = await api.post("/orders/guest", orderData);
+        const res = await api.post<{ id: number }>("/orders/guest", orderData);
         dispatch(clearCartState());
         router.push(`/order-confirmation?order_id=${res.id}`);
       } else {
