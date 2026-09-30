@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Install dependencies based on the lockfile
 COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci
 
 # Stage 2: Build the application
 FROM node:22-alpine AS builder
