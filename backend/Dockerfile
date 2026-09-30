@@ -1,27 +1,29 @@
-FROM langchain/langgraph-api:3.11
+FROM python:3.14-slim
 
+WORKDIR /app
 
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# -- Adding local package . --
-ADD . /deps/backend
-# -- End of local package . --
+# Install uv
+RUN pip install --no-cache-dir uv
 
-# -- Installing all local dependencies --
-RUN for dep in /deps/*; do             echo "Installing $dep";             if [ -d "$dep" ]; then                 echo "Installing $dep";                 (cd "$dep" && PYTHONDONTWRITEBYTECODE=1 uv pip install --system --no-cache-dir -c /api/constraints.txt -e .);             fi;         done
-# -- End of local dependencies install --
+# Copy project files
+COPY . .
+
+# Install dependencies using uv
+RUN PYTHONDONTWRITEBYTECODE=1 uv pip install --system --no-cache-dir -e .
+
+# Set environment variables for LangGraph
 ENV LANGGRAPH_HTTP='{"app": "src.api.main:combined_app"}'
 ENV LANGSERVE_GRAPHS='{"chat": "src.agent.agent:zyro_agent"}'
+ENV PYTHONUNBUFFERED=1
 
+# Expose port (Railway will override this)
+EXPOSE 8000
 
+# Start the app
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
-# -- Ensure user deps didn't inadvertently overwrite langgraph-api
-RUN mkdir -p /api/langgraph_api /api/langgraph_runtime /api/langgraph_license && touch /api/langgraph_api/__init__.py /api/langgraph_runtime/__init__.py /api/langgraph_license/__init__.py
-RUN PYTHONDONTWRITEBYTECODE=1 uv pip install --system --no-cache-dir --no-deps -e /api
-# -- End of ensuring user deps didn't inadvertently overwrite langgraph-api --
-# -- Removing build deps from the final image ~<:===~~~ --
-RUN pip uninstall -y pip setuptools wheel
-RUN rm -rf /usr/local/lib/python*/site-packages/pip* /usr/local/lib/python*/site-packages/setuptools* /usr/local/lib/python*/site-packages/wheel* && find /usr/local/bin -name "pip*" -delete || true
-RUN rm -rf /usr/lib/python*/site-packages/pip* /usr/lib/python*/site-packages/setuptools* /usr/lib/python*/site-packages/wheel* && find /usr/bin -name "pip*" -delete || true
-RUN uv pip uninstall --system pip setuptools wheel && rm /usr/bin/uv /usr/bin/uvx
-
-WORKDIR /deps/backend
