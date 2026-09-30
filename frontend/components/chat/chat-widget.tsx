@@ -19,7 +19,13 @@ export default function ChatWidget() {
   }, [stream.messages]);
 
   const handleSubmit = (text: string) => {
-    stream.submit({ messages: [{ type: "human", content: text }] });
+    const token = localStorage.getItem("zyro-token") || undefined;
+    stream.submit(
+      { messages: [{ type: "human", content: text }] },
+      {
+        context: { token },
+      }
+    );
   };
 
   return (

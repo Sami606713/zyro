@@ -21,6 +21,9 @@ class Category(TimestampMixin, Base):
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     parent: Mapped["Category | None"] = relationship(
-        remote_side="Category.id", backref="children"
+        remote_side="Category.id", back_populates="children"
+    )
+    children: Mapped[List["Category"]] = relationship(
+        back_populates="parent", cascade="all, delete-orphan"
     )
     products: Mapped[List["Product"]] = relationship(back_populates="category")
