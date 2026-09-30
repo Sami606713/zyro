@@ -52,17 +52,7 @@ async def rate_limit_middleware(request: Request, call_next):
 
 
 _CORS_KWARGS = dict(
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
-    allow_origin_regex=(
-        r"http://("
-        r"localhost|127\.0\.0\.1|"
-        r"192\.168\.\d{1,3}\.\d{1,3}|"
-        r"10\.\d{1,3}\.\d{1,3}\.\d{1,3}"
-        r")(:\d+)?"
-    ),
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
