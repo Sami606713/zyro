@@ -5,7 +5,7 @@ FROM node:22-alpine AS deps
 WORKDIR /app
 
 # Install dependencies based on the lockfile
-COPY package.json package-lock.json ./
+COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --omit=dev
 
 # Stage 2: Build the application
@@ -14,7 +14,7 @@ WORKDIR /app
 
 # Copy dependencies from the deps stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY frontend/ ./
 
 # Build the Next.js app
 # The standalone output creates a minimal server with all necessary files
@@ -37,7 +37,7 @@ ENV HOSTNAME=0.0.0.0
 # Copy the standalone build output
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
+COPY --from=builder /app/frontend/public ./public
 
 # Change ownership to the non-root user
 RUN chown -R nextjs:nodejs /app
