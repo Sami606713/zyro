@@ -14,26 +14,33 @@ sys.path.insert(0, str(BACKEND_ROOT))
 load_dotenv(BACKEND_ROOT / ".env")
 
 import bcrypt
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from src.api.models import (
     Address,
+    AuditLog,
     Base,
     Cart,
     CartItem,
     Category,
+    Coupon,
+    Notification,
     Order,
     OrderItem,
+    PasswordResetToken,
     Permission,
     Product,
     ProductImage,
     ProductVariant,
+    RefreshToken,
+    ReturnRequest,
     Review,
     Role,
     RolePermission,
     User,
     UserRole,
+    WishlistItem,
 )
 
 DATABASE_URL = os.getenv("POSTGRES_URI_CUSTOM")
@@ -393,7 +400,8 @@ async def reset_db() -> None:
     engine = create_async_engine(DATABASE_URL)
 
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        await conn.execute(text("DROP SCHEMA public CASCADE"))
+        await conn.execute(text("CREATE SCHEMA public"))
         print("All tables dropped")
 
     await engine.dispose()
