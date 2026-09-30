@@ -31,12 +31,14 @@ export default function LoginPage() {
 
       const data = await res.json();
       localStorage.setItem("zyro-token", data.access_token);
+      localStorage.setItem("zyro-refresh-token", data.refresh_token);
 
       const payload = JSON.parse(atob(data.access_token.split(".")[1]));
       const roles: string[] = payload.roles || [];
 
       if (roles.includes("admin")) {
         localStorage.setItem("zyro-admin-token", data.access_token);
+        localStorage.setItem("zyro-admin-refresh-token", data.refresh_token);
         localStorage.setItem("zyro-admin-user", JSON.stringify({ email, first_name: "Admin", last_name: "" }));
         router.push("/admin");
       } else {

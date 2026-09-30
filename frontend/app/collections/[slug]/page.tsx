@@ -18,7 +18,7 @@ type Product = {
   name: string;
   slug: string;
   base_price: number;
-  category_id: number;
+  category_id: number | null;
   images: { id: number; image_url: string; alt_text: string | null; is_primary: boolean }[];
 };
 
@@ -40,7 +40,7 @@ export default function CollectionPage({ params }: { params: Promise<{ slug: str
           return;
         }
         setCategory(cat);
-        setProducts(prods.filter((p) => p.category_id === cat.id));
+        setProducts(prods.items.filter((p) => p.category_id === cat.id));
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));

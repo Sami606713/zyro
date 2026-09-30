@@ -17,13 +17,13 @@ def get_service(db: DBDep) -> AdminService:
 
 @router.get("/users", response_model=List[UserResponse])
 async def list_users(
+    current_admin: CurrentAdmin,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     search: str | None = None,
     role: str | None = None,
     is_active: bool | None = None,
     service: AdminService = Depends(get_service),
-    current_admin: CurrentAdmin = None,
 ):
     return await service.list_users(skip, limit, search, role, is_active)
 
@@ -32,8 +32,8 @@ async def list_users(
 async def update_user(
     user_id: int,
     data: AdminUserUpdate,
+    current_admin: CurrentAdmin,
     service: AdminService = Depends(get_service),
-    current_admin: CurrentAdmin = None,
 ):
     user = await service.update_user(user_id, data.model_dump(exclude_unset=True))
     if not user:
@@ -45,8 +45,8 @@ async def update_user(
 async def update_user_roles(
     user_id: int,
     data: AdminUserRoleUpdate,
+    current_admin: CurrentAdmin,
     service: AdminService = Depends(get_service),
-    current_admin: CurrentAdmin = None,
 ):
     user = await service.update_user_roles(user_id, data.role_ids)
     if not user:
@@ -57,8 +57,8 @@ async def update_user_roles(
 @router.delete("/users/{user_id}", status_code=204)
 async def delete_user(
     user_id: int,
+    current_admin: CurrentAdmin,
     service: AdminService = Depends(get_service),
-    current_admin: CurrentAdmin = None,
 ):
     deleted = await service.delete_user(user_id)
     if not deleted:

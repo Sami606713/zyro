@@ -13,7 +13,7 @@ def get_service(db: DBDep) -> AdminService:
 
 @router.get("/stats", response_model=DashboardStats)
 async def get_stats(
+    current_admin: CurrentAdmin,
     service: AdminService = Depends(get_service),
-    current_admin: CurrentAdmin = None,
 ):
     return await service.get_dashboard_stats()

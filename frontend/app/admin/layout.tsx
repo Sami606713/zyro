@@ -1,4 +1,4 @@
-import { AdminAuthProvider } from "@/lib/admin-auth";
+import { AdminAuthProvider, AdminRouteProtection } from "@/lib/admin-auth";
 import { AdminShell } from "@/components/admin/shell";
 import type { Metadata } from "next";
 
@@ -9,7 +9,9 @@ export const metadata: Metadata = {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <AdminAuthProvider>
-      <AdminShell>{children}</AdminShell>
+      <AdminRouteProtection>
+        <AdminShell>{children}</AdminShell>
+      </AdminRouteProtection>
     </AdminAuthProvider>
   );
 }

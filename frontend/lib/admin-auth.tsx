@@ -38,28 +38,43 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const formData = new URLSearchParams();
-    formData.append("username", email);
-    formData.append("password", password);
+  useEffect(() => {
+    if (!token) return;
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const exp = payload.exp * 1000;
+    const now = Date.now();
+    const timeUntilExpiry = exp - now;
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/users/login`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: formData,
+    if (timeUntilExpiry < 60000) {
+      const refreshToken = localStorage.getItem("zyro-admin-refresh-token");
+      if (refreshToken) {
+        api.post<{ access_token: string; refresh_token: string }>(
+          "/users/refresh-token",
+          { refresh_token: refreshToken }
+        ).then((data) => {
+          setToken(data.access_token);
+          localStorage.setItem("zyro-admin-token", data.access_token);
+          localStorage.setItem("zyro-admin-refresh-token", data.refresh_token);
+        }).catch(() => {
+          setToken(null);
+          setUser(null);
+          localStorage.removeItem("zyro-admin-token");
+          localStorage.removeItem("zyro-admin-refresh-token");
+          localStorage.removeItem("zyro-admin-user");
+        });
       }
+    }
+  }, [token]);
+
+  const login = async (email: string, password: string) => {
+    const data = await api.post<{ access_token: string; refresh_token: string }>(
+      "/users/login",
+      { email, password }
     );
 
-    if (!res.ok) {
-      const error = await res.json().catch(() => ({ detail: "Login failed" }));
-      throw new Error(error.detail || "Login failed");
-    }
-
-    const data = await res.json();
     setToken(data.access_token);
     localStorage.setItem("zyro-admin-token", data.access_token);
+    localStorage.setItem("zyro-admin-refresh-token", data.refresh_token);
 
     const meRes = await api.get<AdminUser>("/users/me", data.access_token);
     setUser(meRes);
@@ -70,6 +85,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     setUser(null);
     localStorage.removeItem("zyro-admin-token");
+    localStorage.removeItem("zyro-admin-refresh-token");
     localStorage.removeItem("zyro-admin-user");
     router.push("/admin/login");
   };
@@ -85,4 +101,27 @@ export function useAdminAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAdminAuth must be used within AdminAuthProvider");
   return ctx;
+}
+
+export function AdminRouteProtection({ children }: { children: ReactNode }) {
+  const { token, loading } = useAdminAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !token) {
+      router.push("/admin/login");
+    }
+  }, [loading, token, router]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-muted">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!token) return null;
+
+  return <>{children}</>;
 }

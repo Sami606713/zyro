@@ -10,7 +10,7 @@ type Product = {
   name: string;
   slug: string;
   base_price: number;
-  category_id: number;
+  category_id: number | null;
   images: { id: number; image_url: string; alt_text: string | null; is_primary: boolean }[];
 };
 
@@ -30,7 +30,7 @@ export function NewArrivals() {
     Promise.all([fetchCategories(), fetchProducts({ limit: 100 })])
       .then(([cats, prods]) => {
         setCategories(cats);
-        setProducts(prods);
+        setProducts(prods.items);
         if (cats.length > 0) setActive(cats[0].slug);
       })
       .catch(console.error)

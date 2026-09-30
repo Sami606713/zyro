@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, List
 
-from sqlalchemy import ForeignKey, Numeric, String
+from sqlalchemy import ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, TimestampMixin
@@ -8,6 +8,7 @@ from .base import Base, TimestampMixin
 if TYPE_CHECKING:
     from .address import Address
     from .order_item import OrderItem
+    from .return_request import ReturnRequest
     from .user import User
 
 
@@ -15,8 +16,8 @@ class Order(TimestampMixin, Base):
     __tablename__ = "orders"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=True
     )
     status: Mapped[str] = mapped_column(
         String(50), default="pending", nullable=False
@@ -28,6 +29,11 @@ class Order(TimestampMixin, Base):
     billing_address_id: Mapped[int] = mapped_column(
         ForeignKey("addresses.id", ondelete="RESTRICT"), nullable=False
     )
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    guest_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    guest_first_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    guest_last_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    guest_phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     user: Mapped["User"] = relationship(back_populates="orders")
     shipping_address: Mapped["Address"] = relationship(
@@ -37,5 +43,8 @@ class Order(TimestampMixin, Base):
         foreign_keys=[billing_address_id]
     )
     items: Mapped[List["OrderItem"]] = relationship(
+        back_populates="order", cascade="all, delete-orphan"
+    )
+    return_requests: Mapped[List["ReturnRequest"]] = relationship(
         back_populates="order", cascade="all, delete-orphan"
     )

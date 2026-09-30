@@ -187,6 +187,10 @@ body {
   }
 }
 
+@theme inline {
+  --animate-spin-slow: spin 3s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ticker-track {
     animation: none;

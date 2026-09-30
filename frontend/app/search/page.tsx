@@ -11,7 +11,7 @@ type Product = {
   base_price: number;
   description: string | null;
   images: { id: number; image_url: string; alt_text: string | null; is_primary: boolean }[];
-  category: { id: number; name: string; slug: string };
+  category: { id: number; name: string; slug: string } | null;
 };
 
 export default function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
@@ -22,14 +22,14 @@ export default function SearchPage({ searchParams }: { searchParams: Promise<{ q
 
   useEffect(() => {
     fetchProducts({ limit: 100 })
-      .then(setProducts)
+      .then((data) => setProducts(data.items))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
   const found = query
     ? products.filter((product) =>
-        `${product.name} ${product.description || ""} ${product.category.name}`.toLowerCase().includes(query)
+        `${product.name} ${product.description || ""} ${product.category?.name || ""}`.toLowerCase().includes(query)
       )
     : products;
 

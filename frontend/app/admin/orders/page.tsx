@@ -24,13 +24,15 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [filter, setFilter] = useState<(typeof filters)[number]>("All");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
     setLoading(true);
+    setError(null);
     api.get<Order[]>(`/admin/orders?status=${filter === "All" ? "" : filter}`, token)
       .then(setOrders)
-      .catch(console.error)
+      .catch((err) => setError(err.message || "Failed to load orders"))
       .finally(() => setLoading(false));
   }, [token, filter]);
 
@@ -57,11 +59,17 @@ export default function AdminOrdersPage() {
         ))}
       </div>
 
+      {error && (
+        <div className="mb-4 rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-400" role="alert">
+          {error}
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-[1.4rem] bg-white/5 p-1.5">
         <div className="overflow-hidden rounded-[1.15rem] bg-surface">
           {loading ? (
             <p className="px-6 py-16 text-sm text-muted">Loading orders...</p>
-          ) : orders.length === 0 ? (
+          ) : !error && orders.length === 0 ? (
             <p className="px-6 py-16 text-sm text-muted">No orders found.</p>
           ) : (
             <ul className="divide-y divide-white/10">

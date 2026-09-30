@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { SiteFrame } from "@/components/site-frame";
+import ChatWidget from "@/components/chat/chat-widget";
 import { cn } from "@/lib/utils";
+import { Providers } from "./providers";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const outfit = localFont({
   src: "./fonts/outfit-latin.woff2",
@@ -27,8 +30,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={cn("h-full", outfit.variable, "font-sans")}>
-      <body className="min-h-full overflow-x-hidden bg-bg text-fg antialiased">
-        <SiteFrame>{children}</SiteFrame>
+      <body className="min-h-full overflow-x-hidden bg-bg text-fg antialiased" suppressHydrationWarning>
+        <ThemeProvider>
+          <Providers>
+            <SiteFrame>{children}</SiteFrame>
+            <ChatWidget />
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );
