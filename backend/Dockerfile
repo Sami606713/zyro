@@ -2,7 +2,7 @@ FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS builder
 
 WORKDIR /app
 
-COPY --from=ghcr.io/astral-sh/uv:python3.11-bookworm-slim /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:python3.11-bookworm-slim /usr/local/bin/uv /usr/local/bin/uvx /usr/local/bin/
 
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
@@ -12,7 +12,7 @@ FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS runner
 WORKDIR /app
 
 COPY --from=builder /app/.venv ./.venv
-COPY --from=builder /usr/local/bin/uv /usr/local/bin/uv
+COPY --from=builder /usr/local/bin/uv /usr/local/bin/uvx /usr/local/bin/
 
 COPY alembic/ ./alembic/
 COPY alembic.ini ./
