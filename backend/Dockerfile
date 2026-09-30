@@ -1,27 +1,28 @@
-FROM langchain/langgraph-api:3.11
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS builder
 
+WORKDIR /app
 
+COPY --from=ghcr.io/astral-sh/uv:python3.11-bookworm-slim /uv /uvx /bin/
 
-# -- Adding local package . --
-ADD . /deps/backend
-# -- End of local package . --
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
 
-# -- Installing all local dependencies --
-RUN for dep in /deps/*; do             echo "Installing $dep";             if [ -d "$dep" ]; then                 echo "Installing $dep";                 (cd "$dep" && PYTHONDONTWRITEBYTECODE=1 uv pip install --system --no-cache-dir -c /api/constraints.txt -e .);             fi;         done
-# -- End of local dependencies install --
-ENV LANGGRAPH_HTTP='{"app": "src.api.main:combined_app"}'
-ENV LANGSERVE_GRAPHS='{"chat": "src.agent.agent:zyro_agent"}'
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS runner
 
+WORKDIR /app
 
+COPY --from=builder /app/.venv ./.venv
+COPY --from=builder /usr/local/bin/uv /usr/local/bin/uv
 
-# -- Ensure user deps didn't inadvertently overwrite langgraph-api
-RUN mkdir -p /api/langgraph_api /api/langgraph_runtime /api/langgraph_license && touch /api/langgraph_api/__init__.py /api/langgraph_runtime/__init__.py /api/langgraph_license/__init__.py
-RUN PYTHONDONTWRITEBYTECODE=1 uv pip install --system --no-cache-dir --no-deps -e /api
-# -- End of ensuring user deps didn't inadvertently overwrite langgraph-api --
-# -- Removing build deps from the final image ~<:===~~~ --
-RUN pip uninstall -y pip setuptools wheel
-RUN rm -rf /usr/local/lib/python*/site-packages/pip* /usr/local/lib/python*/site-packages/setuptools* /usr/local/lib/python*/site-packages/wheel* && find /usr/local/bin -name "pip*" -delete || true
-RUN rm -rf /usr/lib/python*/site-packages/pip* /usr/lib/python*/site-packages/setuptools* /usr/lib/python*/site-packages/wheel* && find /usr/bin -name "pip*" -delete || true
-RUN uv pip uninstall --system pip setuptools wheel && rm /usr/bin/uv /usr/bin/uvx
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+COPY langgraph.json ./
+COPY scripts/ ./scripts/
+COPY src/ ./src/
 
-WORKDIR /deps/backend
+ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH="/app"
+
+EXPOSE 8000
+
+CMD ["uv", "run", "uvicorn", "src.api.main:combined_app", "--host", "0.0.0.0", "--port", "8000"]
