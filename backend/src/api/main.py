@@ -11,6 +11,7 @@ from fastmcp import FastMCP
 from fastmcp.server.auth.providers.jwt import JWTVerifier
 from src.api.utils.deps import get_mcp_auth
 from src.api.routes import api_router
+from src.api.webhook.whatsapp import router as whatsapp_router
 
 import uvicorn
 import time
@@ -76,6 +77,7 @@ async def cors_error_handler(request: Request, call_next):
 
 
 app.include_router(api_router)
+app.include_router(whatsapp_router)
 
 
 @app.get("/health")

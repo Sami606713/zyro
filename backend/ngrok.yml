@@ -1,0 +1,9 @@
+version: "2"
+authtoken: 3K5s6WCWOU3P76blZUze9Q0tN0B_7xJMWuzVGzBx4XxtpCdZx
+tunnels:
+  fastapi:
+    addr: 8000
+    proto: http
+  pipecat:
+    addr: 7860
+    proto: http
