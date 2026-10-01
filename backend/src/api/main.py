@@ -8,9 +8,10 @@ load_dotenv(BASE_DIR / ".env")
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastmcp import FastMCP
-from fastmcp.server.auth.providers.jwt import JWTVerifier
-from src.api.utils.deps import get_mcp_auth
+# from fastmcp.server.auth.providers.jwt import JWTVerifier
+# from src.api.utils.deps import get_mcp_auth
 from src.api.routes import api_router
+from src.api.webhook.whatsapp import router as whatsapp_router
 
 import uvicorn
 import time
@@ -76,6 +77,7 @@ async def cors_error_handler(request: Request, call_next):
 
 
 app.include_router(api_router)
+app.include_router(whatsapp_router)
 
 
 @app.get("/health")
@@ -83,32 +85,32 @@ async def health_check():
     return {"status": "ok"}
 
 
-mcp = FastMCP.from_fastapi(
-    app=app,
-    name="Zyro MCP",
-    auth=get_mcp_auth()
-)
+# mcp = FastMCP.from_fastapi(
+#     app=app,
+#     name="Zyro MCP",
+#     auth=get_mcp_auth()
+# )
 
-mcp_app = mcp.http_app(
-    path="/mcp",
-)
+# mcp_app = mcp.http_app(
+#     path="/mcp",
+# )
 
 
-combined_app = FastAPI(
-    title="Zyro — Combined",
-    routes=[
-        *mcp_app.routes,
-        *app.routes,
-    ],
-    lifespan=mcp_app.lifespan,
-)
+# combined_app = FastAPI(
+#     title="Zyro — Combined",
+#     routes=[
+#         *mcp_app.routes,
+#         *app.routes,
+#     ],
+#     lifespan=mcp_app.lifespan,
+# )
 
-combined_app.add_middleware(CORSMiddleware, **_CORS_KWARGS)
+# combined_app.add_middleware(CORSMiddleware, **_CORS_KWARGS)
 
 
 if __name__ == "__main__":
     uvicorn.run(
-        combined_app,
+        app,
         host="0.0.0.0",
         port=8000,
     )

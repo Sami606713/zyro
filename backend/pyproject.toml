@@ -18,4 +18,7 @@ dependencies = [
     "langchain-groq>=1.1.3",
     "langchain-openai>=1.6.6",
     "railway>=0.0.4",
+    "pipecat>=0.3.0",
+    "pipecat-ai[cartesia,daily,deepgram,livekit,moq,openai,prebuilt,silero,webrtc]>=1.12.0",
+    "pipecat-ai-prebuilt>=1.2.2",
 ]
