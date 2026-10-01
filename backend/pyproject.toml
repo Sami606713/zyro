@@ -21,4 +21,5 @@ dependencies = [
     "pipecat>=0.3.0",
     "pipecat-ai[cartesia,daily,deepgram,livekit,moq,openai,prebuilt,silero,webrtc]>=1.12.0",
     "pipecat-ai-prebuilt>=1.2.2",
+    "fastmcp-slim[client]>=4.0.10",
 ]

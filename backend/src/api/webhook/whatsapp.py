@@ -6,10 +6,6 @@ import httpx
 from fastapi import APIRouter, Request
 from fastapi.responses import PlainTextResponse
 
-from src.voice.server.bot import bot
-from pipecat.runner.types import RunnerArguments
-
-
 router = APIRouter(
     prefix="/api/v1/webhooks/whatsapp",
     tags=["WhatsApp Webhook"],

@@ -14,9 +14,14 @@ async def create_zyro_agent():
         api_key=os.getenv("AGNES_API_KEY"),
         model="agnes-3.0-flash",
     )
+    
+    async with MCPAdapter("https://zyro-mcp.fastmcp.app/mcp") as adapter:
+        tools = await adapter.list_tools()
+        print("Tools: ",tools)
+
     agent = create_agent(
         model=model,
-        # tools=tools,
+        tools=tools,
         system_prompt="You are a helpful assistant who help zyro customers zyro is a clothing brand.",
         context_schema=ZyroContext
     )
@@ -34,7 +39,7 @@ if __name__ == "__main__":
         "messages": [
             {
                 "role": "user",
-                "content": "show me  all the orders"
+                "content": "i want to buy cap"
             }
         ]
     }))
