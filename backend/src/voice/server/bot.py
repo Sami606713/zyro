@@ -42,7 +42,18 @@ from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.workers.runner import WorkerRunner
 
-load_dotenv(override=True)
+from pathlib import Path
+import os
+
+# Load .env from backend root (for local dev) or use env vars directly (for container)
+try:
+    BACKEND_ROOT = Path(__file__).resolve().parents[3]
+    env_path = BACKEND_ROOT / ".env"
+    if env_path.exists():
+        load_dotenv(env_path, override=True)
+except (IndexError, FileNotFoundError):
+    # In container, env vars are set via Pipecat Cloud secret set
+    pass
 
 
 async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> None:
@@ -68,13 +79,19 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
         ),
     )
 
-    # LLM service (Agnes AI — OpenAI-compatible)
+    # LLM service
     llm = OpenAILLMService(
         api_key=os.getenv("AGNES_API_KEY"),
-        base_url="https://apihub.agnes-ai.com/v1",
+        base_url=os.getenv("AGNES_BASE_URL", "https://apihub.agnes-ai.com/v1"),
         settings=OpenAILLMService.Settings(
-            model="agnes-3.0-flash",
-            system_instruction="You are a helpful assistant in a voice conversation. Your responses will be spoken aloud, so avoid emojis, bullet points, or other formatting that can't be spoken. Respond to what the user said in a creative, helpful, and brief way.",
+            model=os.getenv("AGNES_MODEL", "agnes-3.0-flash"),
+            system_instruction=(
+                "You are Zyro's AI shopping assistant for a Pakistani clothing brand. "
+                "Help customers find clothes, check prices, place orders, and track returns. "
+                "Your responses will be spoken aloud, so avoid emojis, bullet points, "
+                "or other formatting that can't be spoken. Keep responses brief and conversational. "
+                "Prices are in PKR. Always be helpful and friendly."
+            ),
         ),
     )
 
@@ -114,7 +131,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
     async def on_client_ready(rtvi):
         # Kick off the conversation
         context.add_message(
-            {"role": "developer", "content": "Start by concisely introducing yourself."}
+            {"role": "developer", "content": "Start by introducing yourself as Zyro's AI shopping assistant and ask how you can help the customer today."}
         )
         await worker.queue_frames([LLMRunFrame()])
 
@@ -134,7 +151,7 @@ async def bot(runner_args: RunnerArguments):
     """Main bot entry point."""
 
     transport_params = {
-        "smallwebrtc": lambda: TransportParams(
+        "webrtc": lambda: TransportParams(
             audio_in_enabled=True,
             audio_out_enabled=True,
         ),

@@ -1,5 +1,5 @@
-agent_name = "voice"
-secret_set = "voice-secrets"
+agent_name = "zyro-voice"
+secret_set = "zyro-voice-secrets"
 agent_profile = "agent-1x"
 
 [scaling]

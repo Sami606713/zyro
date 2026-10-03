@@ -2,6 +2,7 @@ from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
 from langchain.mcp import MCPAdapter
 from src.agent.context.context import ZyroContext
+from src.agent.middlewares.auth_middleware import ZyroAuthMiddleware
 from dotenv import load_dotenv
 import os
 import asyncio
@@ -15,15 +16,16 @@ async def create_zyro_agent():
         model="agnes-3.0-flash",
     )
     
-    async with MCPAdapter("https://zyro-mcp.fastmcp.app/mcp") as adapter:
-        tools = await adapter.list_tools()
-        print("Tools: ",tools)
+    # async with MCPAdapter("https://zyro-mcp.fastmcp.app/mcp") as adapter:
+    #     tools = await adapter.list_tools()
+    #     print("Tools: ", tools)
 
     agent = create_agent(
         model=model,
-        tools=tools,
+        # tools=tools,
         system_prompt="You are a helpful assistant who help zyro customers zyro is a clothing brand.",
-        context_schema=ZyroContext
+        context_schema=ZyroContext,
+        middleware=[ZyroAuthMiddleware()]
     )
     return agent
 
